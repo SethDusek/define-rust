@@ -1,0 +1,9 @@
+[package]
+name = "define"
+version = "0.1.0"
+authors = ["SethDusek <shibe@openmailbox.org>"]
+[dependencies]
+hyper="*"
+serde="*"
+serde_json="*"
+getopts="*"

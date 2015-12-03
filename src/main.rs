@@ -16,11 +16,9 @@ fn main() {
     for word in opts.free {
         println!("{}:",word.to_uppercase());
         let url = format!("http://api.wordnik.com/v4/word.json/{word}/definitions?api_key={key}",key = KEY, word = word);
-        println!("{}",url);
         let mut resp = wordclient.get(&url).send().unwrap();
         let mut body = String::new();
         resp.read_to_string(&mut body).unwrap();
-        println!("{}",body);
         let word: Value = serde_json::from_str(&body).unwrap();
         println!("{}",word.as_array().unwrap()[0].as_object().unwrap().get("text").unwrap().as_string().unwrap());
     }

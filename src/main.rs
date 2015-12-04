@@ -32,6 +32,6 @@ fn main() {
     let opts = parser.parse(&args[1..]).unwrap();
     for word in opts.free {
         println!("{}:",word.to_uppercase());
-        println!("{}",&wordclient.get_definition("love")[0].as_object().unwrap().get("text").unwrap().as_string().unwrap());
+        println!("{}",wordclient.get_definition(&word)[0].as_object().unwrap().get("text").unwrap().as_string().unwrap());
     }
 }

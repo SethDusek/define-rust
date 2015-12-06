@@ -1,15 +1,20 @@
+#![allow(dead_code)]
+#![allow(unused_must_use)]
 extern crate hyper;
 extern crate getopts;
 extern crate serde;
 extern crate serde_json;
-use std::io::Read;
+use std::io::{Read,Write};
 use std::env;
 use hyper::Client;
 use std::collections::btree_map::BTreeMap;
 use serde_json::Value;
 use getopts::Options;
+use std::process;
+use std::fs::File;
 const KEY: &'static str = "1e940957819058fe3ec7c59d43c09504b400110db7faa0509";
 const TKEY: &'static str = "e415520c671c26518df498d8f4736cac";
+
 struct Dict<'a> {
     key: &'a str,
     tkey: &'a str,
@@ -47,7 +52,42 @@ impl <'a> Dict <'a> {
         synonyms = synonyms.clone();
         Ok(synonyms)
     }
+
+    fn download_audio(&self,word: &str) -> Result<(),std::io::Error> { //downloads the audio to /tmp/audio.mp3 for playback
+        let url = format!("http://api.wordnik.com:80/v4/word.json/{word}/audio?api_key={key}", word = word, key = self.key);
+        let audio = self.httpclient.get(&url).send();
+        let mut audio = match audio {
+            Ok(val) => val,
+            Err(_) => {println!("Could not download audio, exiting."); process::exit(1);}
+        };
+        let mut body = String::new();
+        audio.read_to_string(&mut body).unwrap();
+        let decoded: Vec<BTreeMap<String,Value>> = serde_json::from_str(&body).unwrap();
+        let audiourl = decoded[0].get("fileUrl").unwrap().as_string().unwrap();
+        let mut audiofile = try!(File::create("/tmp/audio.mp3"));
+        let mut audio = match self.httpclient.get(audiourl).send() {
+            Ok(val) => val,
+            Err(_) => {println!("Could not download audio, exiting."); process::exit(1);}
+            };
+        let mut audiob = vec![0; 10];
+        audio.read_to_end(&mut audiob).unwrap();
+        audiofile.write_all(&audiob);
+        Ok(())
+    }
 }
+
+fn program_exists(program_name: &str) -> bool {
+    let output = process::Command::new("whereis").arg(program_name).output().unwrap_or_else(|err| { panic!("{}",err); }).stdout;
+    let stdout = String::from_utf8(output).unwrap();
+    let stdout = stdout.trim();
+    if stdout==format!("{}:",program_name) {
+        false
+    }
+    else {
+        true
+    }
+}
+
 
 fn main() {
     let wordclient: Dict = Dict::new(KEY,TKEY);
@@ -83,7 +123,7 @@ fn main() {
                 },
                 Err(err) => {println!("{}",err);
             }
-        }}
-
+        }
+        }
     }
 }

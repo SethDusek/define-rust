@@ -1,12 +1,18 @@
 #Define
 
 To build define and all dependencies:
->cargo build
+>cargo build --release
 
 To run:
 
->cargo run
+>target/release/define
 
-Or:
+You should also probably move the binary somewhere in your path.
 
->target/debug/define
+#INSTALLATION
+
+Define can be installed using the following command
+
+>cargo install --path PATHTODEFINE
+
+And then add ~/.cargo/bin to your PATH

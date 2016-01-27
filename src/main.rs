@@ -1,129 +1,30 @@
-#![allow(dead_code)]
-#![allow(unused_must_use)]
-extern crate hyper;
-extern crate getopts;
+extern crate curl;
 extern crate serde;
 extern crate serde_json;
-use std::io::{Read,Write};
+extern crate getopts;
+extern crate define;
+use define::dictionaries::{Dictionary, Definition, wordnik};
 use std::env;
-use hyper::Client;
-use std::collections::btree_map::BTreeMap;
-use serde_json::Value;
-use getopts::Options;
-use std::process;
-use std::fs::File;
-const KEY: &'static str = "1e940957819058fe3ec7c59d43c09504b400110db7faa0509";
-const TKEY: &'static str = "e415520c671c26518df498d8f4736cac";
+use getopts::{Matches, Options};
 
-struct Dict<'a> {
-    key: &'a str,
-    tkey: &'a str,
-    httpclient: Client
-}
-impl <'a> Dict <'a> {
-    fn new<'c> (key: &'c str,tkey: &'c str) -> Dict<'c> {
-        Dict {key: key, httpclient: Client::new(),tkey:tkey}
-    }
-    fn get_definitions(&self,word: &str) -> Result<Vec<String>,&str> {
-        let url = format!("http://api.wordnik.com/v4/word.json/{word}/definitions?api_key={key}",key = self.key, word = word);
-        let mut resp = self.httpclient.get(&url).send().expect("Failed to send request");
-        let mut body = String::new();
-        resp.read_to_string(&mut body).unwrap();
-        let word: Value = serde_json::from_str(&body).unwrap();
-        let decoded = word.as_array().unwrap().clone();
-        if decoded.len()==0 {
-            return Err("No definitions found")
-        }
-        let mut definitions = Vec::new();
-        for word in &decoded {
-            definitions.push(word.as_object().unwrap().get("text").unwrap().as_string().unwrap().to_string());
-        }
-        Ok(definitions)
-    }
-    fn get_thesaurus(&self,word: &str) -> Result<BTreeMap<String,Value>,&str> {
-        let url = format!("http://words.bighugelabs.com/api/2/{key}/{word}/json", key = self.tkey, word = word);
-        let mut resp = self.httpclient.get(&url).send().expect("Failed to get thesaurus");
-        let mut body = String::new();
-        resp.read_to_string(&mut body).unwrap();
-        if &body == "" { 
-            return Err("No synonyms found")
-        }
-        let mut synonyms: BTreeMap<String,Value> = serde_json::from_str(&body).unwrap();
-        synonyms = synonyms.clone();
-        Ok(synonyms)
-    }
+static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
 
-    fn download_audio(&self,word: &str) -> Result<(),std::io::Error> { //downloads the audio to /tmp/audio.mp3 for playback
-        let url = format!("http://api.wordnik.com:80/v4/word.json/{word}/audio?api_key={key}", word = word, key = self.key);
-        let audio = self.httpclient.get(&url).send();
-        let mut audio = match audio {
-            Ok(val) => val,
-            Err(_) => {println!("Could not download audio, exiting."); process::exit(1);}
-        };
-        let mut body = String::new();
-        audio.read_to_string(&mut body).unwrap();
-        let decoded: Vec<BTreeMap<String,Value>> = serde_json::from_str(&body).unwrap();
-        let audiourl = decoded[0].get("fileUrl").unwrap().as_string().unwrap();
-        let mut audiofile = try!(File::create("/tmp/audio.mp3"));
-        let mut audio = match self.httpclient.get(audiourl).send() {
-            Ok(val) => val,
-            Err(_) => {println!("Could not download audio, exiting."); process::exit(1);}
-            };
-        let mut audiob = vec![0; 10];
-        audio.read_to_end(&mut audiob).unwrap();
-        audiofile.write_all(&audiob);
-        Ok(())
-    }
+fn parse_args() -> Matches {
+    let argv: Vec<String> = env::args().collect();
+    let parser = Options::new();
+    parser.parse(&argv[1..]).unwrap()
 }
 
-fn program_exists(program_name: &str) -> bool {
-    let output = process::Command::new("whereis").arg(program_name).output().unwrap_or_else(|err| { panic!("{}",err); }).stdout;
-    let stdout = String::from_utf8(output).unwrap();
-    let stdout = stdout.trim();
-    if stdout==format!("{}:",program_name) {
-        false
-    }
-    else {
-        true
-    }
+fn print_definition<'a, T: Dictionary>(dict: &'a mut T, word: &str) -> Result<(), &'a str> {
+    let definitions = try!(dict.get_definitions(word));
+    println!("{}", definitions[0].text);
+    Ok(())
 }
-
-
 fn main() {
-    let wordclient: Dict = Dict::new(KEY,TKEY);
-    let args: Vec<String> = env::args().collect();
-    let mut parser = Options::new();
-    parser.optflag("t","thesaurus","use thesaurus");
-    let opts = parser.parse(&args[1..]).unwrap();
-    for word in &opts.free {
-        println!("{}:",word.to_uppercase());
-        let definitions = wordclient.get_definitions(word);
-        match definitions {
-            Ok(defs) => {println!("{}",defs[0]);},
-            Err(err) => {println!("{}",err);}
-        };
-        if opts.opt_present("t") {
-            let syns = wordclient.get_thesaurus(&word);
-            match syns {
-                Ok(map) => {
-                   if map.get("noun").is_some() {
-                        let mut nounstr = String::new();
-                        let mut first: bool = true;
-                        for noun in map.get("noun").unwrap().as_object().unwrap().get("syn").unwrap().as_array().unwrap() {
-                            if first {
-                                nounstr = nounstr + &(noun.as_string().unwrap());
-                                first = false;
-                            }
-                            else {
-                                nounstr = nounstr + ", " + &(noun.as_string().unwrap());
-                            }
-                   }
-                       println!("NOUNS:\n{}",nounstr);
-                   }
-                },
-                Err(err) => {println!("{}",err);
-            }
-        }
-        }
+    let mut wordnik = wordnik::Wordnik::new(KEY);
+    let args = parse_args();
+    for word in args.free.iter() {
+        println!("{}:", word.to_uppercase());
+        let definition = print_definition(&mut wordnik, word, None).unwrap_or_else(|err| { println!("{}", err) } );
     }
 }

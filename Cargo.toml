@@ -1,9 +1,11 @@
 [package]
+authors = ["SethDusek <shibe@openmailbox.org>"]
 name = "define"
 version = "0.1.0"
-authors = ["SethDusek <shibe@openmailbox.org>"]
+
 [dependencies]
-hyper="*"
-serde="*"
-serde_json="*"
-getopts="*"
+curl = "0.2.16"
+getopts = "0.2.14"
+serde = "0.6.11"
+serde_json = "0.6.0"
+serde_macros = "*"

@@ -13,7 +13,7 @@ static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
 fn parse_args() -> Matches {
     let argv: Vec<String> = env::args().collect();
     let mut parser = Options::new();
-    parser.optflag("t","--thesaurus", "Finds synonyms for word");
+    parser.optflag("t", "--thesaurus", "Finds synonyms for word");
     parser.parse(&argv[1..]).unwrap()
 }
 
@@ -33,10 +33,10 @@ fn main() {
     let args = parse_args();
     for word in args.free.iter() {
         println!("{}:", word.to_uppercase());
-        print_definition(&mut wordnik, word).unwrap_or_else(|err| { println!("{}", err) } );
+        print_definition(&mut wordnik, word).unwrap_or_else(|err| println!("{}", err));
         if args.opt_present("t") {
             println!("SYNONYMS:");
-            print_synonyms(&mut wordnik, word).unwrap_or_else(|err| { println!("{}", err) } );
+            print_synonyms(&mut wordnik, word).unwrap_or_else(|err| println!("{}", err));
         }
     }
 }

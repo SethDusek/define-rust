@@ -7,7 +7,7 @@ pub mod traits {
     }
 
     pub trait Dictionary {
-        fn get_definitions(&mut self, &str) -> Result<Vec<Definition>,&str>;
+        fn get_definitions(&mut self, &str) -> Result<Vec<Definition>, &str>;
     }
 }
 

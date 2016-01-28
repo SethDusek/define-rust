@@ -9,3 +9,6 @@ getopts = "0.2.14"
 serde = "0.6.11"
 serde_json = "0.6.0"
 serde_macros = "*"
+
+[profile.dev]
+codegen-units = 4

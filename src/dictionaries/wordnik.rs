@@ -27,8 +27,8 @@ pub struct WordnikDefinition {
 
 
 pub struct Wordnik <'a> {
-    session: curl::http::Handle,
-    key: &'a str
+    pub session: curl::http::Handle,
+    pub key: &'a str
 }
 
 impl <'a> Wordnik <'a> {
@@ -43,7 +43,7 @@ impl <'a> Dictionary for Wordnik <'a> {
         let request = self.session.get(&url[..]).exec().unwrap();
         let body = String::from_utf8_lossy(request.get_body());
         let decoded: Vec<WordnikDefinition> = serde_json::from_str(&body).unwrap();
-        let definitions = decoded.iter().map(|value| { Definition { word: word.to_string(), text: value.text.to_string() } } ).collect();
+        let definitions = decoded.iter().map(|value| { Definition { word: word.to_string(), text: value.text.clone() } } ).collect();
         if decoded.len()==0 {
             return Err("No definitions")
         }

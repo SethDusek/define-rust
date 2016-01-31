@@ -25,7 +25,6 @@ pub struct WordnikDefinition {
 }
 
 
-
 pub struct Wordnik<'a> {
     pub session: curl::http::Handle,
     pub key: &'a str,
@@ -62,5 +61,11 @@ impl<'a> Dictionary for Wordnik<'a> {
             return Err("No definitions");
         }
         Ok(definitions)
+    }
+}
+
+impl <'a> Clone for Wordnik<'a> {
+    fn clone(&self) -> Self {
+        Wordnik { key: self.key, session: curl::http::handle()  }
     }
 }

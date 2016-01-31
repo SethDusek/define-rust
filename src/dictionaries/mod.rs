@@ -1,4 +1,5 @@
 pub mod wordnik;
+pub mod example;
 
 pub mod traits {
     pub struct Definition {

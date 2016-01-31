@@ -25,22 +25,33 @@ fn get_sources()
 {
     // insert your dictionaries here
     let mut dictionaries: HashMap<String, Box<Dictionary>> = HashMap::new();
-    let mut wordnik = wordnik::Wordnik::new(KEY);
+    let wordnik = wordnik::Wordnik::new(KEY);
     dictionaries.insert(String::from("wordnik"), Box::new(wordnik.clone()));
-    dictionaries.insert(String::from("example"), Box::new(define::dictionaries::example::ExampleDictionary));
+    dictionaries.insert(String::from("example"),
+                        Box::new(define::dictionaries::example::ExampleDictionary));
     let mut thesaureses: HashMap<String, Box<Thesaurus>> = HashMap::new();
     thesaureses.insert(String::from("wordnik"), Box::new(wordnik.clone()));
     (dictionaries, thesaureses)
 }
 fn print_definition<'a, T: Dictionary + ?Sized>(dict: &'a mut Box<T>,
-                                                word: &str)
+                                                word: &str,
+                                                max_definitions: Option<usize>)
                                                 -> Result<(), &'a str> {
     let definitions = try!(dict.get_definitions(word));
-    println!("{}", definitions[0].text);
+    let max_definitions = max_definitions.unwrap_or(1);
+    if max_definitions > 1 {
+        for (wordnumber, word) in definitions.iter().take(max_definitions).enumerate() {
+            println!("{}. {}", wordnumber + 1, word.text);
+        }
+    } else {
+        println!("{}", definitions[0].text);
+    }
     Ok(())
 }
 
-fn print_synonyms<'a, T: Thesaurus + ?Sized>(thes: &'a mut Box<T>, word: &str) -> Result<(), &'a str> {
+fn print_synonyms<'a, T: Thesaurus + ?Sized>(thes: &'a mut Box<T>,
+                                             word: &str)
+                                             -> Result<(), &'a str> {
     let synonyms = try!(thes.get_synonyms(word));
     println!("{}", synonyms.join(", "));
     Ok(())
@@ -55,7 +66,7 @@ fn main() {
     }
     for word in &args.free {
         println!("{}:", word.to_uppercase());
-        print_definition(dictionary, word).unwrap_or_else(|err| println!("{}", err));
+        print_definition(dictionary, word, None).unwrap_or_else(|err| println!("{}", err));
         if args.opt_present("t") {
             println!("SYNONYMS:");
             print_synonyms(thesaurus, word).unwrap_or_else(|err| println!("{}", err));

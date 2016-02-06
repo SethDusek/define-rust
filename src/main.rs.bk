@@ -76,7 +76,8 @@ fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
 fn main() {
     let (mut dictionaries, mut thesaureses) = get_sources();
     let (opts, args) = parse_args(); //we needs opts too for printing brief description
-    let (dictionary, thesaurus) = get_source(&mut dictionaries, &mut thesaureses, &args);
+    let (dictionary, thesaurus) =
+        get_source(&mut dictionaries, &mut thesaureses, &args);
     if args.free.is_empty() {
         println!("{}", opts.usage("USAGE: define WORD"));
     }

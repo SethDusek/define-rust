@@ -90,7 +90,6 @@ fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
     else if args.opt_present("source") {
         source = args.opt_str("source").unwrap_or("wordnik".to_owned()).to_owned();
     }
-    println!("{}", &source);
     let dict: Option<&mut Box<T>> = dictionaries.get_mut(&source);
     let thes: Option<&mut Box<K>> = thesaureses.get_mut(&tsource);
     (dict.unwrap(), thes.unwrap())

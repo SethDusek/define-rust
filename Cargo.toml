@@ -6,7 +6,7 @@ version = "0.1.0"
 [dependencies]
 clippy = "0.0.37"
 curl = "0.2.16"
-getopts = "0.2.14"
+getopts = { git = "https://github.com/SethDusek/getopts.git" }
 serde = "0.6.11"
 serde_json = "0.6.0"
 serde_macros = "*"

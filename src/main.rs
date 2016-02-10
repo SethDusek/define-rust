@@ -10,12 +10,22 @@ use std::env;
 use getopts::{Matches, Options};
 
 static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
+static UKEY: &'static str = "ub2JDDg9Iumsh1HfdO3a3HQbZi0up1qe8LkjsnWQvyVvQLFn1q";
+
+struct Config {
+    max_definitions: i16,
+}
 
 fn parse_args() -> (Options, Matches) {
     let argv: Vec<String> = env::args().collect();
     let mut parser = Options::new();
     parser.optflag("t", "thesaurus", "Finds synonyms for word");
+    parser.optflag("u", "urban", "Urban Dictionary");
     parser.optopt("", "source", "Set dictionary source", "SOURCE");
+    parser.optopt("",
+                  "thesaurus-source",
+                  "Set thesaurus source (not functional yet)",
+                  "SOURCE");
     let parsed = parser.parse(&argv[1..]).unwrap();
     (parser, parsed)
 }
@@ -30,6 +40,8 @@ fn get_sources()
     dictionaries.insert(String::from("wordnik"), Box::new(wordnik.clone()));
     dictionaries.insert(String::from("example"),
                         Box::new(define::dictionaries::example::ExampleDictionary));
+    dictionaries.insert(String::from("urban"),
+                        Box::new(define::dictionaries::urban::Urban::new(UKEY)));
     let mut thesaureses: HashMap<String, Box<Thesaurus>> = HashMap::new();
     thesaureses.insert(String::from("wordnik"), Box::new(wordnik.clone()));
     (dictionaries, thesaureses)
@@ -64,8 +76,21 @@ fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
      thesaureses: &'a mut HashMap<String, Box<K>>,
      args: &Matches)
      -> (&'a mut Box<T>, &'a mut Box<K>) {
-    let source = args.opt_str("source").unwrap_or("wordnik".to_owned()).to_owned();
-    let tsource = args.opt_str("source").unwrap_or("wordnik".to_owned()).to_owned();
+
+    let mut source: String = "wordnik".to_string();
+    let tsource: String;
+    tsource = args.opt_str("thesaurus-source").unwrap_or("wordnik".to_owned()).to_owned();
+    if !args.opt_present("source") {
+        for dictionary_source in dictionaries.keys() {
+            if args.opt_present(&dictionary_source) {
+                source = dictionary_source.clone();
+            }
+        }
+    }
+    else if args.opt_present("source") {
+        source = args.opt_str("source").unwrap_or("wordnik".to_owned()).to_owned();
+    }
+    println!("{}", &source);
     let dict: Option<&mut Box<T>> = dictionaries.get_mut(&source);
     let thes: Option<&mut Box<K>> = thesaureses.get_mut(&tsource);
     (dict.unwrap(), thes.unwrap())
@@ -82,7 +107,7 @@ fn main() {
     }
     for word in &args.free {
         println!("{}:", word.to_uppercase());
-        print_definition(dictionary, word, None).unwrap_or_else(|err| println!("{}", err));
+        print_definition(dictionary, word, Some(3)).unwrap_or_else(|err| println!("{}", err));
         if args.opt_present("t") {
             println!("SYNONYMS:");
             print_synonyms(thesaurus, word).unwrap_or_else(|err| println!("{}", err));

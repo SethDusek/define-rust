@@ -82,8 +82,10 @@ fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
     tsource = args.opt_str("thesaurus-source").unwrap_or("wordnik".to_owned()).to_owned();
     if !args.opt_present("source") {
         for dictionary_source in dictionaries.keys() {
-            if args.opt_present(&dictionary_source) {
-                source = dictionary_source.clone();
+            if args.opt_defined(&dictionary_source) {
+                if args.opt_present(&dictionary_source) {
+                    source = dictionary_source.clone();
+                }
             }
         }
     }

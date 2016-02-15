@@ -77,15 +77,13 @@ fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
      args: &Matches)
      -> (&'a mut Box<T>, &'a mut Box<K>) {
 
-    let mut source: String = "wordnik".to_string();
+    let mut source: String = "wordnik".to_owned();
     let tsource: String;
     tsource = args.opt_str("thesaurus-source").unwrap_or("wordnik".to_owned()).to_owned();
     if !args.opt_present("source") {
         for dictionary_source in dictionaries.keys() {
-            if args.opt_defined(&dictionary_source) {
-                if args.opt_present(&dictionary_source) {
-                    source = dictionary_source.clone();
-                }
+            if args.opt_defined(&dictionary_source) && args.opt_present(&dictionary_source) {
+                source = dictionary_source.clone();
             }
         }
     }
@@ -108,7 +106,7 @@ fn main() {
     }
     for word in &args.free {
         println!("{}:", word.to_uppercase());
-        print_definition(dictionary, word, Some(3)).unwrap_or_else(|err| println!("{}", err));
+        print_definition(dictionary, &word.to_lowercase(), Some(3)).unwrap_or_else(|err| println!("{}", err));
         if args.opt_present("t") {
             println!("SYNONYMS:");
             print_synonyms(thesaurus, word).unwrap_or_else(|err| println!("{}", err));

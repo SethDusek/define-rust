@@ -17,7 +17,7 @@ struct Config {
 }
 
 fn parse_args() -> (Options, Matches) {
-    let argv: Vec<String> = env::args().collect();
+    let argv: Vec<String> = { let mut args: Vec<String> = env::args().collect(); args.dedup(); args };
     let mut parser = Options::new();
     parser.optflag("t", "thesaurus", "Finds synonyms for word");
     parser.optflag("u", "urban", "Urban Dictionary");

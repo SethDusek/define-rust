@@ -4,11 +4,11 @@ name = "define"
 version = "0.1.0"
 
 [dependencies]
-clippy = "0.0.41"
+clippy = "*"
 curl = "0.2.16"
-serde = "0.6.11"
-serde_json = "0.6.0"
-serde_macros = "*"
+serde = "0.7.0"
+serde_json = "0.7.0"
+serde_macros = "0.7.0"
 
 [dependencies.getopts]
 git = "https://github.com/SethDusek/getopts.git"

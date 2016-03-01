@@ -1,3 +1,4 @@
+#![feature(box_syntax)]
 extern crate curl;
 extern crate serde;
 extern crate serde_json;
@@ -37,13 +38,13 @@ fn get_sources()
     // insert your dictionaries here
     let mut dictionaries: HashMap<String, Box<Dictionary>> = HashMap::new();
     let wordnik = wordnik::Wordnik::new(KEY);
-    dictionaries.insert(String::from("wordnik"), Box::new(wordnik.clone()));
+    dictionaries.insert(String::from("wordnik"), box wordnik.clone());
     dictionaries.insert(String::from("example"),
-                        Box::new(define::dictionaries::example::ExampleDictionary));
+                        box define::dictionaries::example::ExampleDictionary);
     dictionaries.insert(String::from("urban"),
-                        Box::new(define::dictionaries::urban::Urban::new(UKEY)));
+                        box define::dictionaries::urban::Urban::new(UKEY));
     let mut thesaureses: HashMap<String, Box<Thesaurus>> = HashMap::new();
-    thesaureses.insert(String::from("wordnik"), Box::new(wordnik.clone()));
+    thesaureses.insert(String::from("wordnik"), box wordnik.clone());
     (dictionaries, thesaureses)
 }
 

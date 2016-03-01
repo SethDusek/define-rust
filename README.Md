@@ -1,5 +1,6 @@
 #Define
-![travis-ci](https://travis-ci.org/SethDusek/define-rust.svg?branch=master)
+[![Build Status](https://travis-ci.org/SethDusek/define-rust.svg?branch=master)](https://travis-ci.org/SethDusek/define-rust)
+
 To build define and all dependencies:
 >cargo build --release
 

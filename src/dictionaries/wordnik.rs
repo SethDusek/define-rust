@@ -25,21 +25,21 @@ pub struct WordnikDefinition {
 }
 
 
-pub struct Wordnik<'a> {
+pub struct Wordnik {
     pub session: curl::http::Handle,
-    pub key: &'a str,
+    pub key: String,
 }
 
-impl<'a> Wordnik<'a> {
+impl Wordnik {
     pub fn new<'c>(key: &'c str) -> Wordnik {
         Wordnik {
             session: curl::http::handle(),
-            key: key,
+            key: key.to_owned(),
         }
     }
 }
 
-impl<'a> Dictionary for Wordnik<'a> {
+impl Dictionary for Wordnik {
     fn get_definitions(&mut self, word: &str) -> Result<Vec<Definition>, &str> {
         let url = format!("http://api.wordnik.com:80/v4/word.\
                            json/{word}/definitions?limit=200&includeRelated=true&useCanonical=fal\
@@ -62,13 +62,20 @@ impl<'a> Dictionary for Wordnik<'a> {
         }
         Ok(definitions)
     }
+
+    fn clone_to_box(&self) -> Box<Dictionary> {
+        Box::new(self.clone())
+    }
 }
 
-impl<'a> Clone for Wordnik<'a> {
+impl Clone for Wordnik {
     fn clone(&self) -> Self {
         Wordnik {
-            key: self.key,
+            key: self.key.clone(),
             session: curl::http::handle(),
         }
     }
 }
+
+unsafe impl Send for Wordnik {}
+unsafe impl Sync for Wordnik {}

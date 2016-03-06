@@ -1,4 +1,5 @@
 #![feature(plugin, custom_derive)]
+#![feature(box_syntax)]
 #![plugin(serde_macros)]
 extern crate serde;
 pub mod dictionaries;

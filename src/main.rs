@@ -3,16 +3,20 @@ extern crate curl;
 extern crate serde;
 extern crate serde_json;
 extern crate getopts;
+extern crate crossbeam;
 extern crate define;
 use define::dictionaries::{Dictionary, wordnik};
 use define::thesaureses::Thesaurus;
 use std::collections::HashMap;
+use std::sync::Arc;
 use std::env;
+use std::sync::mpsc;
 use getopts::{Matches, Options};
 
-static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
-static UKEY: &'static str = "ub2JDDg9Iumsh1HfdO3a3HQbZi0up1qe8LkjsnWQvyVvQLFn1q";
 
+static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
+static UKEY: &'static str = "abcd";
+const THREAD_ENABLED: bool = false;
 struct Config {
     max_definitions: i16,
 }
@@ -32,11 +36,11 @@ fn parse_args() -> (Options, Matches) {
 }
 
 fn get_sources()
-    -> (HashMap<String, Box<Dictionary>>,
+    -> (HashMap<String, Box<Dictionary + Send + Sync>>,
         HashMap<String, Box<Thesaurus>>)
 {
     // insert your dictionaries here
-    let mut dictionaries: HashMap<String, Box<Dictionary>> = HashMap::new();
+    let mut dictionaries: HashMap<String, Box<Dictionary + Send + Sync>> = HashMap::new();
     let wordnik = wordnik::Wordnik::new(KEY);
     dictionaries.insert(String::from("wordnik"), box wordnik.clone());
     dictionaries.insert(String::from("example"),
@@ -64,6 +68,7 @@ fn print_definition<'a, T: Dictionary + ?Sized>(dict: &'a mut Box<T>,
     Ok(())
 }
 
+
 fn print_synonyms<'a, T: Thesaurus + ?Sized>(thes: &'a mut Box<T>,
                                              word: &str)
                                              -> Result<(), &'a str> {
@@ -72,7 +77,7 @@ fn print_synonyms<'a, T: Thesaurus + ?Sized>(thes: &'a mut Box<T>,
     Ok(())
 }
 
-fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
+fn get_source<'a, T: Dictionary + ?Sized + Send + Sync, K: Thesaurus + ?Sized>
     (dictionaries: &'a mut HashMap<String, Box<T>>,
      thesaureses: &'a mut HashMap<String, Box<K>>,
      args: &Matches)
@@ -105,12 +110,44 @@ fn main() {
     if args.free.is_empty() {
         println!("{}", opts.usage("USAGE: define WORD"));
     }
-    for word in &args.free {
-        println!("{}:", word.to_uppercase());
-        print_definition(dictionary, &word.to_lowercase(), Some(3)).unwrap_or_else(|err| println!("{}", err));
-        if args.opt_present("t") {
-            println!("SYNONYMS:");
-            print_synonyms(thesaurus, word).unwrap_or_else(|err| println!("{}", err));
+    if ! THREAD_ENABLED {
+        for word in &args.free {
+            println!("{}:", word.to_uppercase());
+            print_definition(dictionary, &word.to_lowercase(), Some(3)).unwrap_or_else(|err| println!("{}", err));
+            if args.opt_present("t") {
+                println!("SYNONYMS:");
+                print_synonyms(thesaurus, word).unwrap_or_else(|err| println!("{}", err));
+            }
         }
+    }
+    else {
+        let free_clone = args.free.clone();
+        let dict_arc = Arc::new(dictionary.clone_to_box());
+        //chunks.map(|chunk| chunks_vec.push(chunk));
+        let (tx, rx) = mpsc::channel();
+        let mut words: Vec<&[String]> = Vec::new();
+        {
+            let len = free_clone.len()/2;
+            let (words_1, words_2) = free_clone.split_at(len);
+            words.push(words_1);
+            words.push(words_2);
+        }
+        let words_arc = Arc::new(words);
+        for num in 0..2 {
+            let dict = dict_arc.clone();
+            let tx = tx.clone();
+            let words = words_arc.clone()[num];
+            unsafe {
+            crossbeam::spawn_unsafe(move || {
+                let mut dictionary = dict.clone_to_box();
+                for word in words.iter() {
+                    println!("{}", word.to_uppercase());
+                    print_definition(&mut dictionary, word, Some(3));
+                }
+                tx.send(());
+            });
+            }
+        }   
+        for _ in 0..2 { rx.recv().unwrap() }
     }
 }

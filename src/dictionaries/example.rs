@@ -1,3 +1,4 @@
+#[derive(Copy, Clone)]
 pub struct ExampleDictionary;
 use dictionaries::traits::{Dictionary, Definition};
 
@@ -10,4 +11,6 @@ impl Dictionary for ExampleDictionary {
         });
         Ok(definitions)
     }
+
+    fn clone_to_box(&self) -> Box<Dictionary> { Box::new(*self) }
 }

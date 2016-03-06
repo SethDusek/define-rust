@@ -7,7 +7,7 @@ pub struct Synonym {
     relationship_type: String,
     words: Vec<String>,
 }
-impl<'a> Thesaurus for Wordnik<'a> {
+impl Thesaurus for Wordnik {
     fn get_synonyms(&mut self, word: &str) -> Result<Vec<String>, &str> {
         let url = format!("http://api.wordnik.com:80/v4/word.\
                            json/{word}/relatedWords?useCanonical=false&relationshipTypes=synonym&\

@@ -4,7 +4,7 @@ name = "define"
 version = "0.1.0"
 
 [dependencies]
-clippy = "*"
+crossbeam = "0.2.8"
 curl = "0.2.16"
 serde = "0.7.0"
 serde_json = "0.7.0"

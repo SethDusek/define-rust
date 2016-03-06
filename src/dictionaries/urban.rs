@@ -25,23 +25,23 @@ struct Response {
     list: Vec<UrbanDefinition>
 }
 
-pub struct Urban <'a> {
+pub struct Urban {
     session: curl::http::Handle,
-    pub key: &'a str
+    pub key: String
 }
 
-impl <'a> Urban <'a> {
+impl Urban {
     pub fn new(key: &str) -> Urban {
-        Urban {key: key, session: curl::http::handle()}
+        Urban {key: key.to_owned(), session: curl::http::handle()}
     }
 }
 
-impl <'a> Dictionary for Urban <'a> {
+impl Dictionary for Urban {
     fn get_definitions(&mut self, word: &str) -> Result<Vec<Definition>, &str> {
         let mut session = &mut self.session;
         let url = format!("https://mashape-community-urban-dictionary.p.mashape.com/define?term={}", word);
         let request = session.get(url)
-            .header("X-Mashape-Key", self.key)
+            .header("X-Mashape-Key", &self.key)
             .exec().unwrap();
         let response_string = String::from_utf8_lossy(request.get_body());
         let response: Response = serde_json::from_str(&response_string).unwrap();
@@ -56,4 +56,15 @@ impl <'a> Dictionary for Urban <'a> {
             Err("Couldn't find any definitions")
         }
     }
+
+    fn clone_to_box(&self) -> Box<Dictionary> { Box::new(self.clone()) }
 }
+
+impl Clone for Urban {
+    fn clone(&self) -> Self {
+        Urban {key: self.key.clone(), session: curl::http::handle()}
+    }
+}
+
+unsafe impl Send for Urban {}
+unsafe impl Sync for Urban {}

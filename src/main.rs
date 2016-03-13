@@ -1,11 +1,12 @@
 #![feature(box_syntax)]
 extern crate curl;
 extern crate serde;
+extern crate num_cpus;
 extern crate serde_json;
 extern crate getopts;
 extern crate crossbeam;
 extern crate define;
-use define::dictionaries::{Dictionary, wordnik};
+use define::dictionaries::{Dictionary, Definition, wordnik};
 use define::thesaureses::Thesaurus;
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -16,7 +17,7 @@ use getopts::{Matches, Options};
 
 static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
 static UKEY: &'static str = "ub2JDDg9Iumsh1HfdO3a3HQbZi0up1qe8LkjsnWQvyVvQLFn1q";
-const THREAD_ENABLED: bool = false;
+const THREAD_ENABLED: bool = true;
 struct Config {
     max_definitions: i16,
 }
@@ -124,30 +125,52 @@ fn main() {
         let free_clone = args.free.clone();
         let dict_arc = Arc::new(dictionary.clone_to_box());
         //chunks.map(|chunk| chunks_vec.push(chunk));
-        let (tx, rx) = mpsc::channel();
+        let (tx, rx) = mpsc::channel::<Vec<Definition>>();
         let mut words: Vec<&[String]> = Vec::new();
+        let threads = num_cpus::get();;
         {
-            let len = free_clone.len()/2;
-            let (words_1, words_2) = free_clone.split_at(len);
-            words.push(words_1);
-            words.push(words_2);
+            let threads = num_cpus::get();
+            for chunk in free_clone.chunks((free_clone.len() + threads - 1) / threads) {
+                words.push(chunk);
+            }
         }
         let words_arc = Arc::new(words);
-        for num in 0..2 {
+        for num in 0..words_arc.len() {
             let dict = dict_arc.clone();
             let tx = tx.clone();
             let words = words_arc.clone()[num];
             unsafe {
             crossbeam::spawn_unsafe(move || {
                 let mut dictionary = dict.clone_to_box();
+                let mut definitions = Vec::new();
                 for word in words.iter() {
-                    println!("{}", word.to_uppercase());
-                    print_definition(&mut dictionary, word, Some(3));
+                    let defs = dictionary.get_definitions(word).unwrap_or(Vec::new());
+                    for definition in &defs {
+                        definitions.push(definition.clone());
+                    }
                 }
-                tx.send(());
+                tx.send(definitions);
             });
             }
         }   
-        for _ in 0..2 { rx.recv().unwrap() }
+        let mut definitions: HashMap<String, Vec<Definition>> = HashMap::new();
+        for _ in 0..words_arc.len() { 
+            let thread_definitions = rx.recv().unwrap();
+            for definition in thread_definitions {
+                if definitions.contains_key(&definition.word) {
+                    definitions.get_mut(&definition.word).unwrap().push(definition);
+                }
+
+                else {
+                    definitions.insert(definition.word.clone().to_lowercase(), vec![definition]); //lowercase is necessary because some dictionaries return the definitions in different cases
+                }
+            }
+        }
+        for (word, definitions) in definitions.iter() {
+                println!("{}:", word.to_uppercase());
+                for (number, definition) in definitions.iter().take(3).enumerate() {
+                    println!("{}. {}", number + 1, definition.text);
+                }
+            }
     }
 }

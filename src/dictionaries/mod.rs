@@ -3,7 +3,7 @@ pub mod example;
 pub mod urban;
 
 pub mod traits {
-    #[derive(Clone)]
+    #[derive(Clone, Debug)]
     pub struct Definition {
         pub text: String,
         pub word: String,

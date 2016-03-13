@@ -17,7 +17,7 @@ use getopts::{Matches, Options};
 
 static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
 static UKEY: &'static str = "ub2JDDg9Iumsh1HfdO3a3HQbZi0up1qe8LkjsnWQvyVvQLFn1q";
-const THREAD_ENABLED: bool = true;
+const THREAD_ENABLED: bool = false;
 struct Config {
     max_definitions: i16,
 }

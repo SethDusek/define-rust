@@ -78,4 +78,3 @@ impl Clone for Wordnik {
 }
 
 unsafe impl Send for Wordnik {}
-//unsafe impl Sync for Wordnik {}

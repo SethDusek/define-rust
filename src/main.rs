@@ -17,7 +17,7 @@ use getopts::{Matches, Options};
 
 static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
 static UKEY: &'static str = "ub2JDDg9Iumsh1HfdO3a3HQbZi0up1qe8LkjsnWQvyVvQLFn1q";
-const THREAD_ENABLED: bool = false;
+const THREAD_ENABLED: bool = true;
 struct Config {
     max_definitions: i16,
 }
@@ -37,11 +37,11 @@ fn parse_args() -> (Options, Matches) {
 }
 
 fn get_sources()
-    -> (HashMap<String, Box<Dictionary + Send + Sync>>,
+    -> (HashMap<String, Box<Dictionary + Send>>,
         HashMap<String, Box<Thesaurus>>)
 {
     // insert your dictionaries here
-    let mut dictionaries: HashMap<String, Box<Dictionary + Send + Sync>> = HashMap::new();
+    let mut dictionaries: HashMap<String, Box<Dictionary + Send>> = HashMap::new();
     let wordnik = wordnik::Wordnik::new(KEY);
     dictionaries.insert(String::from("wordnik"), box wordnik.clone());
     dictionaries.insert(String::from("example"),
@@ -78,7 +78,7 @@ fn print_synonyms<'a, T: Thesaurus + ?Sized>(thes: &'a mut Box<T>,
     Ok(())
 }
 
-fn get_source<'a, T: Dictionary + ?Sized + Send + Sync, K: Thesaurus + ?Sized>
+fn get_source<'a, T: Dictionary + ?Sized, K: Thesaurus + ?Sized>
     (dictionaries: &'a mut HashMap<String, Box<T>>,
      thesaureses: &'a mut HashMap<String, Box<K>>,
      args: &Matches)

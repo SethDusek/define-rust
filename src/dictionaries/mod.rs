@@ -9,7 +9,7 @@ pub mod traits {
         pub word: String,
     }
 
-    pub trait Dictionary: Send + Sync {
+    pub trait Dictionary: Send {
         fn get_definitions(&mut self, &str) -> Result<Vec<Definition>, &str>;
         fn clone_to_box(&self) -> Box<Dictionary>;
     }

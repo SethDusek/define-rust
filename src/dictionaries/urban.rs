@@ -67,4 +67,3 @@ impl Clone for Urban {
 }
 
 unsafe impl Send for Urban {}
-unsafe impl Sync for Urban {}

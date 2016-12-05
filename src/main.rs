@@ -1,10 +1,8 @@
 #![feature(box_syntax)]
 extern crate curl;
 extern crate serde;
-extern crate num_cpus;
 extern crate serde_json;
 extern crate getopts;
-extern crate crossbeam;
 extern crate define;
 use define::dictionaries::{Dictionary, Definition, wordnik};
 use define::thesaureses::Thesaurus;

@@ -4,21 +4,14 @@ extern crate serde;
 extern crate serde_json;
 extern crate getopts;
 extern crate define;
-use define::dictionaries::{Dictionary, Definition, wordnik};
+use define::dictionaries::{Dictionary, wordnik};
 use define::thesaureses::Thesaurus;
 use std::collections::HashMap;
-use std::sync::Arc;
 use std::env;
-use std::sync::mpsc;
 use getopts::{Matches, Options};
-
 
 static KEY: &'static str = "a2a73e7b926c924fad7001ca3111acd55af2ffabf50eb4ae5";
 static UKEY: &'static str = "ub2JDDg9Iumsh1HfdO3a3HQbZi0up1qe8LkjsnWQvyVvQLFn1q";
-//const THREAD_ENABLED: bool = true;
-struct Config {
-    max_definitions: i16,
-}
 
 fn parse_args() -> (Options, Matches) {
     let argv: Vec<String> = { let mut args: Vec<String> = env::args().collect(); args.dedup(); args };

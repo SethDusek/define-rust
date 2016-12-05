@@ -4,15 +4,24 @@ name = "define"
 version = "0.1.0"
 
 [dependencies]
-crossbeam = "0.2.8"
 curl = "0.2.16"
-num_cpus = "0.2.11"
-serde = "*"
-serde_json = "*"
-serde_macros = "*"
+serde = "0.8"
+serde_derive = "0.8"
+serde_json = "0.8"
+
+[dependencies.crossbeam]
+optional = true
+version = "0.2.8"
 
 [dependencies.getopts]
 git = "https://github.com/SethDusek/getopts.git"
+
+[dependencies.num_cpus]
+optional = true
+version = "0.2.11"
+
+[features]
+threaded = ["crossbeam", "num_cpus"]
 
 [profile]
 

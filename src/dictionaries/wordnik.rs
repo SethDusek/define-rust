@@ -1,7 +1,10 @@
 extern crate serde;
 extern crate serde_json;
-extern crate curl;
+extern crate hyper;
 use dictionaries::traits::{Definition, Dictionary};
+use hyper::Client;
+use hyper::header::ContentLength;
+use std::io::Read;
 #[derive(Deserialize, Debug)]
 pub struct WordnikDefinition {
     #[serde(rename="textProns")]
@@ -26,14 +29,14 @@ pub struct WordnikDefinition {
 
 
 pub struct Wordnik {
-    pub session: curl::http::Handle,
+    pub session: Client,
     pub key: String,
 }
 
 impl Wordnik {
     pub fn new<'c>(key: &'c str) -> Wordnik {
         Wordnik {
-            session: curl::http::handle(),
+            session: Client::new(),
             key: key.to_owned(),
         }
     }
@@ -46,8 +49,10 @@ impl Dictionary for Wordnik {
                            se&includeTags=false&api_key={key}",
                           word = word,
                           key = self.key);
-        let request = self.session.get(&url[..]).exec().unwrap();
-        let body = String::from_utf8_lossy(request.get_body());
+        let mut response = self.session.get(&url).send().unwrap();
+        let cap = response.headers.get::<ContentLength>().map(|v| v.0 as usize).unwrap_or(0);
+        let mut body = String::with_capacity(cap as usize);
+        response.read_to_string(&mut body);
         let decoded: Vec<WordnikDefinition> = serde_json::from_str(&body).unwrap();
         let definitions = decoded.iter()
                                  .map(|value| {
@@ -72,7 +77,7 @@ impl Clone for Wordnik {
     fn clone(&self) -> Self {
         Wordnik {
             key: self.key.clone(),
-            session: curl::http::handle(),
+            session: Client::new(),
         }
     }
 }

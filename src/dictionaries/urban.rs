@@ -1,9 +1,12 @@
 #![allow(dead_code)]
-extern crate curl;
 extern crate serde;
 extern crate serde_json;
+extern crate hyper;
 
 use dictionaries::traits::{Definition, Dictionary};
+use hyper::Client;
+use hyper::header::ContentLength;
+use std::io::Read;
 
 #[derive(Deserialize)]
 struct UrbanDefinition {
@@ -26,24 +29,26 @@ struct Response {
 }
 
 pub struct Urban {
-    session: curl::http::Handle,
+    session: Client,
     pub key: String
 }
 
 impl Urban {
     pub fn new(key: &str) -> Urban {
-        Urban {key: key.to_owned(), session: curl::http::handle()}
+        Urban {key: key.to_owned(), session: Client::new()}
     }
 }
 
 impl Dictionary for Urban {
     fn get_definitions(&mut self, word: &str) -> Result<Vec<Definition>, &str> {
-        let mut session = &mut self.session;
         let url = format!("https://mashape-community-urban-dictionary.p.mashape.com/define?term={}", word);
-        let request = session.get(url)
-            .header("X-Mashape-Key", &self.key)
-            .exec().unwrap();
-        let response_string = String::from_utf8_lossy(request.get_body());
+        let mut headers = hyper::header::Headers::new();
+        headers.set_raw("X-Mashape-Key", vec![self.key.clone().into()]);
+        let mut request = self.session.get(&url)
+            .send().unwrap();
+        let len: usize = request.headers.get::<ContentLength>().map(|v| v.0 as usize).unwrap_or(0);
+        let mut response_string = String::with_capacity(len);
+        request.read_to_string(&mut response_string);
         let response: Response = serde_json::from_str(&response_string).unwrap();
         let mut definitions: Vec<Definition> = Vec::new();
         for definition in response.list {
@@ -62,7 +67,7 @@ impl Dictionary for Urban {
 
 impl Clone for Urban {
     fn clone(&self) -> Self {
-        Urban {key: self.key.clone(), session: curl::http::handle()}
+        Urban {key: self.key.clone(), session: Client::new()}
     }
 }
 

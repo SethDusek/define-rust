@@ -1,5 +1,4 @@
 #![feature(box_syntax)]
-extern crate curl;
 extern crate serde;
 extern crate serde_json;
 extern crate getopts;

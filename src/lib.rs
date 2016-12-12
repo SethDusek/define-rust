@@ -4,3 +4,5 @@
 extern crate hyper;
 pub mod dictionaries;
 pub mod thesaureses;
+pub use dictionaries::{Definition, Dictionary};
+pub use thesaureses::Thesaurus;

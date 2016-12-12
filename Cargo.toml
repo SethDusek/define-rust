@@ -9,10 +9,13 @@ serde = "0.8"
 serde_derive = "0.8"
 serde_json = "0.8"
 
+[[bin]]
+name = "define"
+path = "src/main.rs"
+doc = false
+
 [dependencies.getopts]
 git = "https://github.com/rust-lang-nursery/getopts/"
-
-[profile]
 
 [profile.dev]
 codegen-units = 4

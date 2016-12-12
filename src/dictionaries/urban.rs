@@ -3,7 +3,7 @@ extern crate serde;
 extern crate serde_json;
 extern crate hyper;
 
-use dictionaries::traits::{Definition, Dictionary};
+use dictionaries::{Definition, Dictionary};
 use hyper::Client;
 use hyper::header::ContentLength;
 use std::io::Read;

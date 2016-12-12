@@ -1,6 +1,6 @@
 #[derive(Copy, Clone)]
 pub struct ExampleDictionary;
-use dictionaries::traits::{Dictionary, Definition};
+use dictionaries::{Dictionary, Definition};
 
 impl Dictionary for ExampleDictionary {
     fn get_definitions(&mut self, word: &str) -> Result<Vec<Definition>, &str> {

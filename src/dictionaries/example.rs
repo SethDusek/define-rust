@@ -3,7 +3,7 @@ pub struct ExampleDictionary;
 use dictionaries::{Dictionary, Definition};
 
 impl Dictionary for ExampleDictionary {
-    fn get_definitions(&mut self, word: &str) -> Result<Vec<Definition>, &str> {
+    fn get_definitions(&mut self, word: &str) -> ::Result<Vec<Definition>> {
         let mut definitions = Vec::new();
         definitions.push(Definition {
             text: "This word means something".to_string(),

@@ -46,8 +46,8 @@ fn get_sources()
 fn print_definition<'a, T: Dictionary + ?Sized>(dict: &'a mut Box<T>,
                                                 word: &str,
                                                 max_definitions: Option<usize>)
-                                                -> Result<(), &'a str> {
-    let definitions = try!(dict.get_definitions(word));
+                                                -> define::Result<()> {
+    let definitions = dict.get_definitions(word)?;
     let max_definitions = max_definitions.unwrap_or(1);
     if max_definitions > 1 {
         for (wordnumber, word) in definitions.iter().take(max_definitions).enumerate() {

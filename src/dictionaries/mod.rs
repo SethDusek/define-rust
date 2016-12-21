@@ -9,6 +9,6 @@ pub struct Definition {
 }
 
 pub trait Dictionary: Send {
-    fn get_definitions(&mut self, &str) -> Result<Vec<Definition>, &str>;
+    fn get_definitions(&mut self, &str) -> ::Result<Vec<Definition>>;
     fn clone_to_box(&self) -> Box<Dictionary>;
 }

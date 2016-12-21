@@ -43,17 +43,17 @@ impl Wordnik {
 }
 
 impl Dictionary for Wordnik {
-    fn get_definitions(&mut self, word: &str) -> Result<Vec<Definition>, &str> {
+    fn get_definitions(&mut self, word: &str) -> ::Result<Vec<Definition>> {
         let url = format!("http://api.wordnik.com:80/v4/word.\
                            json/{word}/definitions?limit=200&includeRelated=true&useCanonical=fal\
                            se&includeTags=false&api_key={key}",
                           word = word,
                           key = self.key);
-        let mut response = self.session.get(&url).send().unwrap();
+        let mut response = self.session.get(&url).send()?;
         let cap = response.headers.get::<ContentLength>().map(|v| v.0 as usize).unwrap_or(0);
         let mut body = String::with_capacity(cap as usize);
-        response.read_to_string(&mut body);
-        let decoded: Vec<WordnikDefinition> = serde_json::from_str(&body).unwrap();
+        response.read_to_string(&mut body)?;
+        let decoded: Vec<WordnikDefinition> = serde_json::from_str(&body)?;
         let definitions = decoded.iter()
                                  .map(|value| {
                                      Definition {
@@ -62,9 +62,6 @@ impl Dictionary for Wordnik {
                                      }
                                  })
                                  .collect();
-        if decoded.len() == 0 {
-            return Err("No definitions");
-        }
         Ok(definitions)
     }
 

@@ -43,6 +43,11 @@ mod error {
             Error::Serde(val)
         }
     }
+    impl From<::std::io::Error> for Error {
+        fn from(val: ::std::io::Error) -> Self {
+            Error::Error(Box::new(val))
+        }
+    }
 }
         
 pub use error::Error;

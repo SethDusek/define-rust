@@ -1,5 +1,5 @@
 language: rust
 rust:
     - nightly
-script: cargo build --verbose
+script: rustup run nightly "cargo build --verbose"
 

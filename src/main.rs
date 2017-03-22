@@ -32,12 +32,12 @@ fn get_sources()
 {
     // insert your dictionaries here
     let mut dictionaries: HashMap<String, Box<Dictionary + Send>> = HashMap::new();
-    let wordnik = wordnik::Wordnik::new(KEY);
+    let wordnik = wordnik::Wordnik::new(option_env!("WORDNIK_KEY").unwrap_or(KEY));
     dictionaries.insert(String::from("wordnik"), box wordnik.clone());
     dictionaries.insert(String::from("example"),
                         box define::dictionaries::example::ExampleDictionary);
     dictionaries.insert(String::from("urban"),
-                        box define::dictionaries::urban::Urban::new(UKEY));
+                        box define::dictionaries::urban::Urban::new(option_env!("URBAN_KEY").unwrap_or(UKEY)));
     let mut thesaureses: HashMap<String, Box<Thesaurus>> = HashMap::new();
     thesaureses.insert(String::from("wordnik"), box wordnik.clone());
     (dictionaries, thesaureses)

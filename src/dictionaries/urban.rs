@@ -65,5 +65,3 @@ impl Clone for Urban {
         Urban {key: self.key.clone(), session: Client::new()}
     }
 }
-
-unsafe impl Send for Urban {}
